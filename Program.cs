@@ -189,6 +189,12 @@ app.Map("/error", () => Results.Problem("An unexpected error occurred."));
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 
 app.Run();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
 
 // ==================== SUPPORTING CLASSES ====================
 public class FileUploadOperationFilter : IOperationFilter
