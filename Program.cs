@@ -22,24 +22,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Controllers
 builder.Services.AddControllers();
 
-
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+// Database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configuration Settings
-//builder.Services.Configure<ResendSettings>(
-//    builder.Configuration.GetSection("ResendSettings"));
 builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
-
-builder.Services.AddSingleton<IResend>(sp =>
-{
-    var settings = sp.GetRequiredService<IOptions<ResendSettings>>().Value;
-    return ResendClient.Create(settings.ApiKey);
-});
-
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<JWT>(builder.Configuration.GetSection("Jwt"));
 
@@ -67,15 +55,16 @@ builder.Services.AddCors(options =>
                 "https://localhost:3000",
                 "http://localhost:5047",
                 "https://localhost:5001",
-                "https://vaultiq-production.up.railway.app"
+                "https://vaultiq-production.up.railway.app",
+                "https://vaultiq-8nx3.onrender.com" // 👈 ADD THIS
             )
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials(); // 👈 ADD THIS FOR AUTHENTICATION
     });
 });
 
 // ==================== AUTHENTICATION CONFIGURATION ====================
-// ✅ FIXED: Proper JWT Configuration
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrEmpty(jwtKey))
 {
@@ -90,7 +79,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // For development only
+    options.RequireHttpsMetadata = false;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -101,30 +90,21 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidAudience = builder.Configuration["Jwt:Audience"],
         ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero // Strict token expiration
-    };
-
-    // Better error handling
-    options.Events = new JwtBearerEvents
-    {
-        OnAuthenticationFailed = context =>
-        {
-            Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-            return Task.CompletedTask;
-        },
-        OnTokenValidated = context =>
-        {
-            Console.WriteLine("Token successfully validated");
-            return Task.CompletedTask;
-        }
+        ClockSkew = TimeSpan.Zero
     };
 })
 .AddCookie("Cookies")
 .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
 {
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-    options.CallbackPath = "/signin-google";
+    var clientId = builder.Configuration["Authentication:Google:ClientId"];
+    var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+    if (!string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(clientSecret))
+    {
+        options.ClientId = clientId;
+        options.ClientSecret = clientSecret;
+        options.CallbackPath = "/signin-google";
+    }
 });
 
 // ==================== SWAGGER CONFIGURATION ====================
@@ -138,7 +118,6 @@ builder.Services.AddSwaggerGen(c =>
         Description = "VaultIQ — Consent & Data Access Authorization API"
     });
 
-    // 🔐 FIXED: Proper JWT Security Definition
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -146,7 +125,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter 'Bearer' [space] and then your token. Example: 'Bearer abc123def456'"
+        Description = "Enter 'Bearer' [space] and then your token."
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -160,7 +139,7 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+            Array.Empty<string>()
         }
     });
 
@@ -168,6 +147,20 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// ==================== DATABASE MIGRATION ====================
+// 👈 MOVE THIS UP - BEFORE ANY MIDDLEWARE
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An error occurred while migrating the database.");
+}
 
 // ==================== MIDDLEWARE PIPELINE ====================
 
@@ -179,8 +172,6 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "VaultIQ API v1");
         c.RoutePrefix = string.Empty;
-
-        // Add this to persist authorization
         c.ConfigObject.PersistAuthorization = true;
     });
 }
@@ -190,23 +181,26 @@ else
     app.UseHsts();
 }
 
+// Use the PORT environment variable (for Railway/Render)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Add($"http://*:{port}");
+
 app.UseHttpsRedirection();
+
+// 👈 CORS MUST COME BEFORE UseRouting()
 app.UseCors("AllowAll");
+
 app.UseRouting();
-app.UseAuthentication(); // Must be before Authorization
+
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Map("/error", () => Results.Problem("An unexpected error occurred."));
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 
 app.Run();
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-}
-
 
 // ==================== SUPPORTING CLASSES ====================
 public class FileUploadOperationFilter : IOperationFilter
