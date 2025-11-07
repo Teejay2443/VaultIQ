@@ -6,6 +6,7 @@
         public string BusinessName { get; set; }
         public string UserEmail { get; set; }
         public string FileName { get; set; }
+        public string FileUrl { get; set; }
         public string PurposeOfAccess { get; set; }
         public int AccessDurationInHours { get; set; }
         public string Status { get; set; }

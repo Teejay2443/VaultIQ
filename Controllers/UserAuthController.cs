@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using VaultIQ.Data;
 using VaultIQ.Dtos.Auth;
 using VaultIQ.Dtos.Email;
 using VaultIQ.Dtos.Requests;
@@ -23,13 +25,15 @@ namespace VaultIQ.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IJwtService _jwtService;
         private readonly IGoogleAuthService _googleAuthService;
+        private readonly AppDbContext _Context;
 
-        public UserAuthController(IAuthServices authService, IUserRepository userRepository, IJwtService jwtService, IGoogleAuthService googleAuthService)
+        public UserAuthController(IAuthServices authService, IUserRepository userRepository, IJwtService jwtService, IGoogleAuthService googleAuthService, AppDbContext Context)
         {
             _authService = authService;
             _userRepository = userRepository;
             _jwtService = jwtService;
             _googleAuthService = googleAuthService;
+            _Context = Context;
         }
 
         /// <summary>
@@ -173,5 +177,19 @@ namespace VaultIQ.Controllers
                 user = new { user.FullName, user.Email }
             });
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            var user = await _Context.Users.FindAsync(id);
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            _Context.Users.Remove(user);
+            await _Context.SaveChangesAsync();
+
+            return Ok(new { message = "User deleted successfully" });
+        }
+
     }
 }

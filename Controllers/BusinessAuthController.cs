@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using VaultIQ.Data;
 using VaultIQ.Dtos.Business;
 using VaultIQ.Dtos.Email;
 using VaultIQ.Dtos.Requests;
@@ -12,11 +14,14 @@ namespace VaultIQ.Controllers
     {
         private readonly IBusinessAuthService _businessAuthService;
         private readonly ILogger<BusinessAuthController> _logger;
+        private readonly AppDbContext _context;
 
-        public BusinessAuthController(IBusinessAuthService businessAuthService, ILogger<BusinessAuthController> logger)
+        public BusinessAuthController(IBusinessAuthService businessAuthService, ILogger<BusinessAuthController> logger,  AppDbContext context)
         {
             _businessAuthService = businessAuthService;
             _logger = logger;
+            _context = context;
+
         }
 
         // ---------------------------
@@ -95,5 +100,19 @@ namespace VaultIQ.Controllers
             var result = await _businessAuthService.RefreshTokenAsync(dto);
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBusiness(Guid id)
+        {
+            var business = await _context.Businesses.FindAsync(id);
+            if (business == null)
+                return NotFound(new { message = "Business not found" });
+
+            _context.Businesses.Remove(business);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Business deleted successfully" });
+        }
+
     }
 }

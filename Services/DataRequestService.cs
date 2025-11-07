@@ -10,17 +10,20 @@ namespace VaultIQ.Services
     {
         private readonly IDataRequestRepository _dataRequestRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IDocumentRespository _documentRepository; // ✅ NEW: to check if file exists
         private readonly IEmailServices _emailServices;
         private readonly ILogger<DataRequestService> _logger;
 
         public DataRequestService(
             IDataRequestRepository dataRequestRepository,
             IUserRepository userRepository,
+            IDocumentRespository documentRespository, // ✅ NEW
             IEmailServices emailServices,
             ILogger<DataRequestService> logger)
         {
             _dataRequestRepository = dataRequestRepository;
             _userRepository = userRepository;
+            _documentRepository = documentRespository; // ✅ NEW
             _emailServices = emailServices;
             _logger = logger;
         }
@@ -38,9 +41,13 @@ namespace VaultIQ.Services
                 if (user == null)
                     return ResponseModel<Guid>.Failure("No user found with this email.");
 
-                // Optional: validate that the requested data actually exists
                 if (string.IsNullOrWhiteSpace(dto.FileName))
                     return ResponseModel<Guid>.Failure("File name must be provided.");
+
+                // ✅ Check if file exists under that user
+                var file = await _documentRepository.GetFileByUserAndNameAsync(user.Id, dto.FileName.Trim());
+                if (file == null)
+                    return ResponseModel<Guid>.Failure("Requested file not found under this user's data.");
 
                 var request = new DataRequest
                 {
@@ -97,8 +104,15 @@ namespace VaultIQ.Services
 
                 if (dto.Status.Equals("Approved", StringComparison.OrdinalIgnoreCase))
                 {
+                    // ✅ Get file to include its URL for approved access
+                    var user = await _userRepository.GetByEmailAsync(request.UserEmail);
+                    var file = await _documentRepository.GetFileByUserAndNameAsync(user.Id, request.FileName);
+                    if (file == null)
+                        return ResponseModel.Failure("Cannot approve request. File not found.");
+
                     request.Status = "Approved";
                     request.ExpiresAt = DateTime.UtcNow.AddHours(request.AccessDurationInHours);
+                    request.FileUrl = file.FileUrl; // ✅ Save file URL for business to access
                 }
                 else if (dto.Status.Equals("Declined", StringComparison.OrdinalIgnoreCase))
                 {
@@ -166,10 +180,17 @@ namespace VaultIQ.Services
                 AccessDurationInHours = r.AccessDurationInHours,
                 Status = r.Status,
                 RequestedAt = r.RequestedAt,
-                ExpiresAt = r.ExpiresAt
+                ExpiresAt = r.ExpiresAt,
+                FileUrl = r.Status == "Approved" ? r.FileUrl : null // ✅ only show file link if approved
             });
 
             return ResponseModel<IEnumerable<DataRequestResponseDto>>.Success(response, "Requests retrieved successfully.");
         }
     }
 }
+
+
+
+
+
+

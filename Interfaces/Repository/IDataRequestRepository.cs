@@ -7,6 +7,7 @@ namespace VaultIQ.Interfaces.Repository
         Task AddDataRequestAsync(DataRequest request);
         Task<DataRequest?> GetByIdAsync(Guid id);
         Task<IEnumerable<DataRequest>> GetByUserEmailAsync(string email);
+
         Task<IEnumerable<DataRequest>> GetByBusinessIdAsync(Guid businessId);
         Task UpdateDataRequestAsync(DataRequest request);
         Task<bool> SaveChangesAsync();

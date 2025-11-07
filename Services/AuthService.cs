@@ -116,6 +116,7 @@ namespace VaultIQ.Services
 
                 var response = new LoginResponseModel
                 {
+                    Id = user.Id,
                     AccessToken = accessToken,
                     RefreshToken = refreshToken
                 };

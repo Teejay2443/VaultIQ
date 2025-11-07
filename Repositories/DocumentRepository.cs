@@ -28,6 +28,11 @@ namespace VaultIQ.Repositories
         {
             return await _context.Documents.CountAsync(d => d.UserId == userId);
         }
+        public async Task<Document?> GetFileByUserAndNameAsync(Guid userId, string fileName)
+        {
+            return await _context.Documents
+    .FirstOrDefaultAsync(f => f.UserId == userId && f.FileName == fileName);
+        }
 
     }
 }
