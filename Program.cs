@@ -30,8 +30,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configuration Settings
-builder.Services.Configure<ResendSettings>(
-    builder.Configuration.GetSection("ResendSettings"));
+//builder.Services.Configure<ResendSettings>(
+//    builder.Configuration.GetSection("ResendSettings"));
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 
 builder.Services.AddSingleton<IResend>(sp =>
 {
