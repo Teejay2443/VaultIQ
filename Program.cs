@@ -61,15 +61,16 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-                "https://localhost:7027",
+        policy
+            .WithOrigins(
+                "http://localhost:3000",
+                "https://localhost:3000",
                 "http://localhost:5047",
                 "https://localhost:5001",
-                "http://localhost:3000"
+                "https://vaultiq-production.up.railway.app"
             )
             .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowAnyMethod();
     });
 });
 
