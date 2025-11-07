@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Resend;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
 using VaultIQ.Data;
@@ -28,7 +30,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configuration Settings
-builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.Configure<ResendSettings>(
+    builder.Configuration.GetSection("ResendSettings"));
+
+builder.Services.AddSingleton<IResend>(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<ResendSettings>>().Value;
+    return ResendClient.Create(settings.ApiKey);
+});
+
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<JWT>(builder.Configuration.GetSection("Jwt"));
 

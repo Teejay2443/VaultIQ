@@ -183,6 +183,7 @@ namespace VaultIQ.Services
                 user.VerificationToken = newCode.ToString();
                 user.TokenGeneratedAt = DateTime.UtcNow;
                 await _userRepository.UpdateUserAsync(user);
+                await _userRepository.SaveChangesAsync();
 
                 string subject = "VaultIQ - New Verification Code";
                 string body = $"Your new verification token is: <b>{newCode}</b> (expires in 15 minutes).";
