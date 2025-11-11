@@ -79,7 +79,6 @@
 using MailKit.Net.Smtp;
 using MimeKit;
 using VaultIQ.Interfaces.Services;
-
 public class EmailServices : IEmailServices
 {
     private readonly IConfiguration _config;
@@ -130,6 +129,9 @@ public class EmailServices : IEmailServices
         }
     }
 }
+
+
+
 
 
 

@@ -43,7 +43,6 @@ builder.Services.AddScoped<IDocumentRespository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
-
 // ==================== CORS CONFIGURATION ====================
 builder.Services.AddCors(options =>
 {
@@ -70,6 +69,7 @@ if (string.IsNullOrEmpty(jwtKey))
 {
     throw new InvalidOperationException("JWT Key is not configured");
 }
+
 
 builder.Services.AddAuthentication(options =>
 {
