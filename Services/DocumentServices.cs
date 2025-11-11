@@ -1,6 +1,7 @@
 ﻿
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using VaultIQ.Data;
 using VaultIQ.Dtos;
@@ -125,6 +126,42 @@ namespace VaultIQ.Services
                 return ResponseModel.Failure($"Error deleting document: {ex.Message}");
             }
         }
+
+        public async Task<PagedDocumentsDto> SearchDocumentsAsync(
+       Guid userId, string query, int pageNumber, int pageSize)
+        {
+            query = query.ToLower();
+
+            var documentsQuery = _context.Documents
+                .Where(d => d.UserId == userId &&
+                       (d.FileName.ToLower().Contains(query) ||
+                        d.FileType.ToLower().Contains(query)));
+
+            var totalCount = await documentsQuery.CountAsync();
+
+            var documents = await documentsQuery
+                .OrderByDescending(d => d.UploadedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    FileName = d.FileName,
+                    FileType = d.FileType,
+                    FileUrl = d.FileUrl,
+                    UploadedAt = d.UploadedAt
+                })
+                .ToListAsync();
+
+            return new PagedDocumentsDto
+            {
+                Documents = documents,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+
 
 
 

@@ -104,6 +104,25 @@ namespace VaultIQ.Controllers
             return Ok(new { message = result.Message });
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchDocuments(
+    [FromQuery] string query,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 10)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return BadRequest(new { message = "Search query is required." });
+
+            var userId = GetUserId();
+            var result = await _documentService.SearchDocumentsAsync(userId, query, pageNumber, pageSize);
+
+            return Ok(new
+            {
+                message = "Search completed successfully.",
+                data = result
+            });
+        }
+
     }
 }
 
