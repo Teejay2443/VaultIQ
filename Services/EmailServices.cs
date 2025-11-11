@@ -1,4 +1,4 @@
-﻿//using Microsoft.Extensions.Options;
+//using Microsoft.Extensions.Options;
 //using Resend;
 //using System.Net.Mail;
 //using VaultIQ.Interfaces.Services;
