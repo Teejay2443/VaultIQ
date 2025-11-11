@@ -107,6 +107,11 @@ builder.Services.AddAuthentication(options =>
     }
 });
 
+var smtpSettings = builder.Configuration.GetSection("SmtpSettings").Get<SmtpSettings>();
+if (string.IsNullOrEmpty(smtpSettings.Host))
+    throw new InvalidOperationException("SMTP Host is not configured");
+
+
 // ==================== SWAGGER CONFIGURATION ====================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
