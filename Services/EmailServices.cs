@@ -95,7 +95,11 @@ public class EmailServices : IEmailServices
         {
             var email = new MimeMessage();
 
-            email.From.Add(new MailboxAddress("VaultIQ", _config["SmtpSettings:Username"]));
+            email.From.Add(new MailboxAddress(
+                _config["SmtpSettings:FromName"],
+                _config["SmtpSettings:FromEmail"]
+            ));
+
             email.To.Add(new MailboxAddress("", toEmail));
             email.Subject = subject;
 
@@ -120,23 +124,13 @@ public class EmailServices : IEmailServices
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }
-        catch (SmtpCommandException ex)
-        {
-            // SMTP-level error (bad auth, invalid email, etc.)
-            throw new Exception($"SMTP command error: {ex.Message} - StatusCode: {ex.StatusCode}");
-        }
-        catch (SmtpProtocolException ex)
-        {
-            // Protocol failure (TLS, malformed message, etc.)
-            throw new Exception($"SMTP protocol error: {ex.Message}");
-        }
         catch (Exception ex)
         {
-            // Any other error
             throw new Exception($"Email sending failed: {ex.Message}");
         }
     }
 }
+
 
 
 
