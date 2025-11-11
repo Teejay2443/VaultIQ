@@ -1,7 +1,9 @@
-﻿namespace VaultIQ.Interfaces.Services
+﻿
+
+namespace VaultIQ.Interfaces.Services
 {
-        public interface IEmailServices
-        {
-            Task SendEmailAsync(string to, string subject, string htmlContent);
-        }
+    public interface IEmailServices
+    {
+       Task  SendEmailAsync(string toEmail, string subject, string htmlMessage);
+    }
 }

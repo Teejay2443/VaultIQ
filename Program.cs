@@ -27,7 +27,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configuration Settings
-builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+//builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.Configure<BrevoSettings>(
+    builder.Configuration.GetSection("BrevoSettings"));
+
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<JWT>(builder.Configuration.GetSection("Jwt"));
 
@@ -107,9 +110,9 @@ builder.Services.AddAuthentication(options =>
     }
 });
 
-var smtpSettings = builder.Configuration.GetSection("SmtpSettings").Get<SmtpSettings>();
-if (string.IsNullOrEmpty(smtpSettings.Host))
-    throw new InvalidOperationException("SMTP Host is not configured");
+//var smtpSettings = builder.Configuration.GetSection("SmtpSettings").Get<SmtpSettings>();
+//if (string.IsNullOrEmpty(smtpSettings.Host))
+//    throw new InvalidOperationException("SMTP Host is not configured");
 
 
 // ==================== SWAGGER CONFIGURATION ====================

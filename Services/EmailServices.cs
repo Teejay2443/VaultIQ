@@ -76,72 +76,120 @@
 //    }
 //}
 
-using MailKit.Net.Smtp;
-using MimeKit;
+//using MailKit.Net.Smtp;
+//using MimeKit;
+//using VaultIQ.Interfaces.Services;
+//public class EmailServices : IEmailServices
+//{
+//    private readonly IConfiguration _config;
+
+//    public EmailServices(IConfiguration config)
+//    {
+//        _config = config;
+//    }
+
+//    public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage)
+//    {
+//        try
+//        {
+//            var email = new MimeMessage();
+
+//            email.From.Add(new MailboxAddress(
+//                _config["SmtpSettings:FromName"],
+//                _config["SmtpSettings:FromEmail"]
+//            ));
+
+//            email.To.Add(new MailboxAddress("", toEmail));
+//            email.Subject = subject;
+
+//            email.Body = new TextPart("html")
+//            {
+//                Text = htmlMessage
+//            };
+
+//            using var smtp = new SmtpClient();
+
+//            await smtp.ConnectAsync(
+//                _config["SmtpSettings:Host"],
+//                int.Parse(_config["SmtpSettings:Port"]),
+//                MailKit.Security.SecureSocketOptions.StartTls
+//            );
+
+//            await smtp.AuthenticateAsync(
+//                _config["SmtpSettings:Username"],
+//                _config["SmtpSettings:Password"]
+//            );
+
+//            await smtp.SendAsync(email);
+//            await smtp.DisconnectAsync(true);
+//        }
+//        catch (Exception ex)
+//        {
+//            throw new Exception($"Email sending failed: {ex.Message}");
+//        }
+//    }
+//}
+
+
+
+
+
+
+
+//public class SmtpSettings
+//{
+//    public string Host { get; set; }
+//    public int Port { get; set; }
+//    public bool EnableSsl { get; set; }
+//    public string Username { get; set; }
+//    public string Password { get; set; }
+//    public string FromEmail { get; set; }
+//}
+
+using Microsoft.Extensions.Options;
+using sib_api_v3_sdk.Api;
+using sib_api_v3_sdk.Client;
+using sib_api_v3_sdk.Model;
 using VaultIQ.Interfaces.Services;
-public class EmailServices : IEmailServices
+using VaultIQ.Settings;
+
+namespace VaultIQ.Services
 {
-    private readonly IConfiguration _config;
-
-    public EmailServices(IConfiguration config)
+    public class EmailServices : IEmailServices
     {
-        _config = config;
-    }
+        private readonly BrevoSettings _settings;
 
-    public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage)
-    {
-        try
+        public EmailServices(IOptions<BrevoSettings> brevoSettings)
         {
-            var email = new MimeMessage();
+            _settings = brevoSettings.Value;
+            Configuration.Default.AddApiKey("api-key", _settings.ApiKey);
+        }
 
-            email.From.Add(new MailboxAddress(
-                _config["SmtpSettings:FromName"],
-                _config["SmtpSettings:FromEmail"]
-            ));
-
-            email.To.Add(new MailboxAddress("", toEmail));
-            email.Subject = subject;
-
-            email.Body = new TextPart("html")
+        public async System.Threading.Tasks.Task SendEmailAsync(string toEmail, string subject, string htmlMessage)
+        {
+            try
             {
-                Text = htmlMessage
-            };
+                var emailApi = new TransactionalEmailsApi();
 
-            using var smtp = new SmtpClient();
+                var sendSmtpEmail = new SendSmtpEmail(
+                    sender: new SendSmtpEmailSender(_settings.FromName, _settings.FromEmail),
+                    to: new List<SendSmtpEmailTo>
+                    {
+                        new SendSmtpEmailTo(toEmail)
+                    },
+                    subject: subject,
+                    htmlContent: htmlMessage
+                );
 
-            await smtp.ConnectAsync(
-                _config["SmtpSettings:Host"],
-                int.Parse(_config["SmtpSettings:Port"]),
-                MailKit.Security.SecureSocketOptions.StartTls
-            );
-
-            await smtp.AuthenticateAsync(
-                _config["SmtpSettings:Username"],
-                _config["SmtpSettings:Password"]
-            );
-
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+                await emailApi.SendTransacEmailAsync(sendSmtpEmail);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Brevo API Email failed: {ex.Message}");
+            }
         }
-        catch (Exception ex)
-        {
-            throw new Exception($"Email sending failed: {ex.Message}");
-        }
+
+
+
     }
-}
-
-
-
-
-
-
-
-public class SmtpSettings
-{
-    public string Host { get; set; }
-    public int Port { get; set; }
-    public bool EnableSsl { get; set; }
-    public string Username { get; set; }
-    public string Password { get; set; }
-    public string FromEmail { get; set; }
 }
