@@ -112,6 +112,7 @@ namespace VaultIQ.Services
 
                 var response = new LoginResponseModel
                 {
+                    Id = business.Id,
                     AccessToken = accessToken,
                     RefreshToken = refreshToken
                 };
@@ -237,6 +238,7 @@ namespace VaultIQ.Services
                 business.EmailConfirmationToken = newCode.ToString();
                 business.TokenGeneratedAt = DateTime.UtcNow;
                 await _businessRepository.UpdateBusinessAsync(business);
+                await _businessRepository.SaveChangesAsync();
 
                 string subject = "VaultIQ - New Verification Code";
                 string body = $"Your new verification token is: <b>{newCode}</b> (expires in 15 minutes).";
