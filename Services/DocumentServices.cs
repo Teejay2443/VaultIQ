@@ -45,7 +45,8 @@ namespace VaultIQ.Services
                 File = new FileDescription(request.File.FileName, request.File.OpenReadStream()),
                 UseFilename = true,
                 UniqueFilename = true,
-                Overwrite = false
+                Overwrite = false,
+                AccessMode = "public" 
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
@@ -67,6 +68,30 @@ namespace VaultIQ.Services
 
             return document;
         }
+        public async Task<PagedDocumentsDto> GetDocumentsByUserEmailAsync(string email, int pageNumber, int pageSize)
+        {
+            if (string.IsNullOrEmpty(email))
+                throw new ArgumentException("Email is required.");
+
+            var docs = await _documentRepository.GetDocumentsByUserEmailAsync(email, pageNumber, pageSize);
+            var total = await _documentRepository.GetTotalCountByUserEmailAsync(email);
+
+            return new PagedDocumentsDto
+            {
+                Documents = docs.Select(d => new
+                {
+                    d.Id,
+                    d.FileName,
+                    d.FileType,
+                    d.FileUrl,
+                    d.UploadedAt,
+                }),
+                TotalCount = total,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+
 
 
         public async Task<PagedDocumentsDto> GetAllDocumentsAsync(Guid userId, int pageNumber, int pageSize)
@@ -161,10 +186,6 @@ namespace VaultIQ.Services
                 PageSize = pageSize
             };
         }
-
-
-
-
     }
 }
 

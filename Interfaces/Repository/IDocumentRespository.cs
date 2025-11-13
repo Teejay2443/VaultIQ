@@ -7,6 +7,9 @@ namespace VaultIQ.Interfaces.Repository
         Task<IEnumerable<Document>> GetDocumentsByUserAsync(Guid userId, int pageNumber, int pageSize);
         Task<int> GetTotalCountByUserAsync(Guid userId);
         Task<Document?> GetFileByUserAndNameAsync(Guid userId, string fileName);
+        Task<IEnumerable<Document>> GetDocumentsByUserEmailAsync(string email, int pageNumber, int pageSize);
+        Task<int> GetTotalCountByUserEmailAsync(string email);
+
 
 
     }

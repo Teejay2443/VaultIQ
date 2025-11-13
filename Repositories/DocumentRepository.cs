@@ -33,6 +33,21 @@ namespace VaultIQ.Repositories
             return await _context.Documents
     .FirstOrDefaultAsync(f => f.UserId == userId && f.FileName == fileName);
         }
+        public async Task<IEnumerable<Document>> GetDocumentsByUserEmailAsync(string email, int pageNumber, int pageSize)
+        {
+            return await _context.Documents
+                .Where(d => d.User.Email == email)
+                .OrderByDescending(d => d.UploadedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetTotalCountByUserEmailAsync(string email)
+        {
+            return await _context.Documents
+                .CountAsync(d => d.User.Email == email);
+        }
 
     }
 }

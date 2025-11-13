@@ -10,6 +10,7 @@ namespace VaultIQ.Interfaces.Services
         Task<PagedDocumentsDto> GetAllDocumentsAsync(Guid userId, int pageNumber, int pageSize);
         Task<ResponseModel> DeleteDocumentAsync(Guid documentId);
         Task<PagedDocumentsDto> SearchDocumentsAsync(Guid userId, string query, int pageNumber, int pageSize);
+        Task<PagedDocumentsDto> GetDocumentsByUserEmailAsync(string email, int pageNumber, int pageSize);
 
     }
 }

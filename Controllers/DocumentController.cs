@@ -123,6 +123,28 @@ namespace VaultIQ.Controllers
             });
         }
 
+        [HttpGet("get-by-email")]
+        public async Task<IActionResult> GetDocumentsByEmail(
+    [FromQuery] string email,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 10)
+        {
+            if (string.IsNullOrEmpty(email))
+                return BadRequest(new { message = "Email is required." });
+
+            var response = await _documentService.GetDocumentsByUserEmailAsync(email, pageNumber, pageSize);
+
+            if (response == null || !response.Documents.Any())
+                return NotFound(new { message = "No documents found for this user." });
+
+            return Ok(new
+            {
+                message = "Documents retrieved successfully.",
+                data = response
+            });
+        }
+
+
     }
 }
 
