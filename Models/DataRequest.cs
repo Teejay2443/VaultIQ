@@ -10,7 +10,7 @@ namespace VaultIQ.Models
         public Guid BusinessId { get; set; }
         public string UserEmail { get; set; }
         public string FileName { get; set; }
-        public string FileUrl { get; set; }
+        public string? FileUrl { get; set; } = "default";
         public string PurposeOfAccess { get; set; }
         public int AccessDurationInHours { get; set; }
 
@@ -18,8 +18,6 @@ namespace VaultIQ.Models
         public DateTime? ExpiresAt { get; set; }
 
         public string Status { get; set; } = "Pending"; 
-
-
         public Business Business { get; set; } 
     }
 }

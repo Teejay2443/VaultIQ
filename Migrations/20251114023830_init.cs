@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VaultIQ.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialPostgresMigration : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -65,6 +65,7 @@ namespace VaultIQ.Migrations
                     BusinessId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserEmail = table.Column<string>(type: "text", nullable: false),
                     FileName = table.Column<string>(type: "text", nullable: false),
+                    FileUrl = table.Column<string>(type: "text", nullable: true),
                     PurposeOfAccess = table.Column<string>(type: "text", nullable: false),
                     AccessDurationInHours = table.Column<int>(type: "integer", nullable: false),
                     RequestedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),

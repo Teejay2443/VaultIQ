@@ -55,11 +55,12 @@ namespace VaultIQ.Services
                     BusinessId = businessId,
                     UserEmail = dto.UserEmail,
                     FileName = dto.FileName.Trim(),
+                    FileUrl =  "Default",
                     PurposeOfAccess = dto.PurposeOfAccess.Trim(),
                     AccessDurationInHours = dto.AccessDurationInHours > 0 ? dto.AccessDurationInHours : 24,
                     Status = "Pending",
                     RequestedAt = DateTime.UtcNow
-                };
+                }; 
 
                 await _dataRequestRepository.AddDataRequestAsync(request);
                 await _dataRequestRepository.SaveChangesAsync();
