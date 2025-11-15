@@ -10,20 +10,20 @@ namespace VaultIQ.Services
     {
         private readonly IDataRequestRepository _dataRequestRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IDocumentRespository _documentRepository; // ✅ NEW: to check if file exists
+        private readonly IDocumentRespository _documentRepository; 
         private readonly IEmailServices _emailServices;
         private readonly ILogger<DataRequestService> _logger;
 
         public DataRequestService(
             IDataRequestRepository dataRequestRepository,
             IUserRepository userRepository,
-            IDocumentRespository documentRespository, // ✅ NEW
+            IDocumentRespository documentRespository, 
             IEmailServices emailServices,
             ILogger<DataRequestService> logger)
         {
             _dataRequestRepository = dataRequestRepository;
             _userRepository = userRepository;
-            _documentRepository = documentRespository; // ✅ NEW
+            _documentRepository = documentRespository; 
             _emailServices = emailServices;
             _logger = logger;
         }
@@ -113,7 +113,7 @@ namespace VaultIQ.Services
 
                     request.Status = "Approved";
                     request.ExpiresAt = DateTime.UtcNow.AddHours(request.AccessDurationInHours);
-                    request.FileUrl = file.FileUrl; // ✅ Save file URL for business to access
+                    request.FileUrl = file.FileUrl;
                 }
                 else if (dto.Status.Equals("Declined", StringComparison.OrdinalIgnoreCase))
                 {

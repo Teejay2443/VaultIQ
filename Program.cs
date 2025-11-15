@@ -58,7 +58,9 @@ builder.Services.AddCors(options =>
                 "http://localhost:5047",
                 "https://localhost:5001",
                 "https://vaultiq-production.up.railway.app",
-                "https://vaultiq-8nx3.onrender.com" // 👈 ADD THIS
+                "https://vaultiq-8nx3.onrender.com",
+                "https://vaultiq-blond.vercel.app"
+
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
